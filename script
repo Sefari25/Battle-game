@@ -1,0 +1,202 @@
+from pygame import *
+import random
+from time import time as timer
+
+#!подклбючение
+
+
+class GameSprite(sprite.Sprite):
+    def __init__(self, player_image, player_x, player_y, player_speed, wight, height):
+        super().__init__()
+        self.image = transform.scale(image.load(player_image), (wight, height))
+        self.speed = player_speed
+        self.rect = self.image.get_rect()
+        self.rect.x = player_x
+        self.rect.y = player_y
+    def reset(self):
+        window.blit(self.image, (self.rect.x, self.rect.y))
+
+class Player(GameSprite):
+    def update(self):
+        keys_pressed = key.get_pressed()
+        if keys_pressed[K_LEFT] and self.rect.x > 5:
+            self.rect.x -= self.speed
+        if keys_pressed[K_RIGHT] and self.rect.x < 595:
+            self.rect.x += self.speed
+    def fire(self):
+        NewBullet = Bullet('png-klev-club-6xp3-p-raketa-voennaya-png-5-no-bg-preview (carve.photos).png', self.rect.centerx, self.rect.top, 15, 50, 50)
+        bullets.add(NewBullet)
+
+lost = 0
+class Enemy(GameSprite):
+    def update(self):
+        global lost
+        self.rect.y += self.speed
+        if self.rect.y > razmer2:
+            self.rect.x = random.randint(80, razmer1 - 80)
+            self.rect.y = 0
+            lost = lost + 1
+
+bulletstime = 0   
+kills = 0
+class Bullet(GameSprite):
+    def update(self):
+        global bulletstime
+        self.rect.y -= self.speed
+        if self.rect.y < 0:
+            proigral.play()
+            self.kill()
+
+
+class Kamikads(GameSprite):
+    def update(self):
+        self.rect.y += self.speed
+        if self.rect.y > razmer2:
+            self.rect.x = random.randint(80, razmer1 - 80)
+            self.rect.y = 0
+        
+        
+
+#TODOклассы
+
+razmer1 = 700
+razmer2 = 500
+window = display.set_mode((razmer1, razmer2))
+display.set_caption('Space War')
+background = transform.scale(image.load('4322117.jpg'), (razmer1, razmer2))
+
+
+#фон
+
+mixer.init()
+mixer.music.load('02. CP Violation (online-audio-converter.com).ogg')
+mixer.music.play()
+game = True
+finish = False
+
+proigral = mixer.Sound('inecraft_death.wav')
+bam = mixer.Sound('fire.ogg')
+
+
+#музыка
+
+heards = 3
+
+gg = Player('pngtree-military-combat-fighter-top-view-air-force-to-guard-the-skies-png-image_11950994.png', 450, 350, 15, 150, 150)
+wrag1 = Enemy('2025-04-15_21-26-02-no-bg-preview (carve.photos).png', random.randint(100, 600), random.randint(-100, 50), 1, 150, 150)
+wrag2 = Enemy('2025-04-15_21-26-02-no-bg-preview (carve.photos).png', random.randint(100, 600), random.randint(-100, 50), 1, 150, 150)
+wrag3 = Enemy('2025-04-15_21-26-02-no-bg-preview (carve.photos).png', random.randint(100, 600), random.randint(-100, 50), 1, 150, 150)
+wrag4 = Enemy('2025-04-15_21-26-02-no-bg-preview (carve.photos).png', random.randint(100, 600), random.randint(-100, 50), 1, 150, 150)
+wrag5 = Enemy('2025-04-15_21-26-02-no-bg-preview (carve.photos).png', random.randint(100, 600), random.randint(-100, 50), 1, 150, 150)
+OneKamikadze = Kamikads('asteroid.png', random.randint(100, 600), random.randint(1, 70), 10, 50, 50)
+TwoKamikadze = Kamikads('asteroid.png', random.randint(100, 600), random.randint(1, 70), 10, 50, 50)
+monsters = sprite.Group()
+monsters.add(wrag1)
+monsters.add(wrag2)
+monsters.add(wrag3)
+monsters.add(wrag4)
+monsters.add(wrag5)
+bullets = sprite.Group()
+Kamikadze = sprite.Group()
+Kamikadze.add(OneKamikadze)
+Kamikadze.add(TwoKamikadze)
+
+#спрайты
+
+flag = False
+
+font.init()
+font1 = font.SysFont('Arial', 36)
+
+LOSE = font1.render('ПРОИГРАЛ', True, (0, 0, 0))
+WIN = font1.render('ПОБЕДИЛ', True, (0, 0, 0))
+load = font1.render('Перезарядка...', True, (0, 0, 0))
+
+#тексты
+
+
+
+while game:
+    window.blit(background, (0, 0))
+    for e in event.get():
+        if e.type == QUIT:
+            game = False
+        if e.type == KEYDOWN:
+            if e.key == K_SPACE:
+                bam.play()
+                gg.fire()
+                bulletstime += 1
+                if bulletstime == 5:
+                    flag = True
+                    center2 = timer()
+    if finish == False:
+        if lost > 10:
+            finish = True
+            window.blit(LOSE, (250, 250))
+        explosion = sprite.groupcollide(monsters, bullets, True, True)
+        for OneMonster in explosion:
+            kills += 1
+            wrag6 = Enemy('2025-04-15_21-26-02-no-bg-preview (carve.photos).png', random.randint(100, 600), random.randint(-100, 50), 1, 150, 150)
+            monsters.add(wrag6)
+        if kills > 35:
+            finish = True
+            window.blit(WIN, (250, 250))
+        sprite_list = sprite.spritecollide(gg, Kamikadze, False)
+        for SuperKamikadze in sprite_list:
+            heards -= 1
+            OneKamikadze.kill()
+            TwoKamikadze.kill()
+            OneKamikadze = Kamikads('asteroid.png', random.randint(100, 600), random.randint(1, 70), 10, 50, 50)
+            TwoKamikadze = Kamikads('asteroid.png', random.randint(100, 600), random.randint(1, 70), 10, 50, 50)
+            Kamikadze.add(OneKamikadze)
+            Kamikadze.add(TwoKamikadze)
+        if flag == True:
+            time.delay(3000)
+            center1 = timer()
+            if center1 - center2 < 3:
+                window.blit(load, (250, 250))
+            else:
+                bulletstime = 0
+                flag = False
+        if heards == 0:
+            finish = True
+            window.blit(LOSE, (250, 250))
+        if finish == True:
+            time.delay(3000)
+            kills = 0
+            lost = 0
+            gg.update()
+            gg.reset()
+            monsters.draw(window)
+            monsters.update()
+            bullets.update()
+            bullets.draw(window)
+            Kamikadze.update()
+            Kamikadze.draw(window)
+            text_lose = font1.render('Пропущено: ' + str(lost), 1, (0, 0, 0))
+            text_popal = font1.render('Счёт:' + str(kills), 1, (0, 0, 0))
+            heards_text = font1.render('жизни:' + str(heards), 1, (0, 0, 0))
+            window.blit(text_lose, (1, 1))
+            window.blit(text_popal, (1, 30))
+            window.blit(heards_text, (1, 60))
+            display.update()
+            finish = False
+        gg.update()
+        gg.reset()
+        monsters.draw(window)
+        monsters.update()
+        bullets.update()
+        bullets.draw(window)
+        Kamikadze.update()
+        Kamikadze.draw(window)
+        text_lose = font1.render('Пропущено: ' + str(lost), 1, (0, 0, 0))
+        text_popal = font1.render('Счёт:' + str(kills), 1, (0, 0, 0))
+        heards_text = font1.render('жизни:' + str(heards), 1, (0, 0, 0))
+        window.blit(text_lose, (1, 1))
+        window.blit(text_popal, (1, 30))
+        window.blit(heards_text, (1, 60))
+        display.update()
+        time.delay(50)
+    
+
+#цикл
